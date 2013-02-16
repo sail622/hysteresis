@@ -1,4 +1,4 @@
 hysteresis
 ==========
 
-R Package for Modeling Rate Dependent Hysteretic Processes.
+R Package for Modeling Rate-dependent Hysteretic Processes.
