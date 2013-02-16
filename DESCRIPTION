@@ -1,0 +1,10 @@
+Package: hysteresis
+Title: Tools for Modeling Rate Dependent Hysteretic Processes.
+Version: 1.0
+Date: 2013-1-22
+Author: Spencer Maynes, Fan Yang, and Anne Parkhurst
+Maintainer: Spencer Maynes <smaynes89@gmail.com>
+Depends: parallel, car, msm
+Suggests: knitr
+Description: Fit, summarize and plot sinusoidal hysteretic processes using linear least squares, ellipse-specific non-linear least squares, or two-stage simple harmonic least squares.
+License: gpl (>= 1)

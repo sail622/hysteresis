@@ -1,0 +1,228 @@
+Hysteresis
+========================================================
+An R package for fitting hysteretic loops
+-------------------------------------
+Hysteresis occurs when an output variable is dependent on not just the current value of an input variable, but also its history. This package contains functions to simulate, fit, and obtain parameter values along with their standard errors from hysteresis loops of the form
+$$x_{t}=cx+b.x*cos(rad)+e_{x,t}$$
+$$y_{t}=cy+retention*sin(rad)^{m}+b.y*cos(rad)^{n}+e_{y,t}$$
+where rad is the time vector 
+$$rad=t*2\pi/period+phase.angle$$
+and e is a normally distributed random error term. This two stage harmonic formulation is based on the work of Rostislav V. Lapshin. Usually m and n are both constrained to be odd.
+
+The plot below uses the function **mloop** which simulates hysteresis loops to show the effects of choosing various odd values for m and n.
+```{r mandn,warning=FALSE,message=FALSE,fig.width=20}
+library(hysteresis)
+par(mfrow=c(5,5),mai=c(0,0.2,0.2,0),ann=FALSE,xaxt="n",yaxt="n",oma=c(0,0,3,0))
+
+for (i in c(1,3,5,7,9)){
+  for (j in c(1,3,5,7,9)){
+    obj<-mloop(m=i,n=j,n.points=100,period=99)
+    plot(obj$x,obj$y,type="l",xlim=c(-0.8,0.8),ylim=c(-0.8,0.8))
+    if (i==1) title(paste("n=",j,sep=""))
+    if (j==1) title(ylab=paste("m=",i,sep=""),line=0,cex.sub=2)
+  }
+}
+title("Hysteresis Loops for Odd Values of m and n",outer=TRUE)
+```
+
+It is also possible to use even values for n.
+
+```{r moremandn,warning=FALSE, fig.width=20}
+par(mfrow=c(5,5),mai=c(0,0.2,0.2,0),ann=FALSE,xaxt="n",yaxt="n",oma=c(0,0,3,0))
+
+for (i in c(1,3,5,7,9)){
+  for (j in c(2,4,6,8,10)){
+    obj<-mloop(m=i,n=j,n.points=100,period=99)
+    plot(obj$x,obj$y,type="l",xlim=c(-0.8,0.8),ylim=c(-0.8,0.8))
+    if (i==1) title(paste("n=",j,sep=""))
+    if (j==2) title(ylab=paste("m=",i,sep=""),line=0,cex.sub=2)
+  }
+}
+title("Hysteresis Loops for Odd Values of m and Even Values of n",outer=TRUE)
+```
+A special case is when m=1 and n=1, this makes the hysteresis loop an ellipse. The centroid of the hysteresis loop is given by cx and cy as shown in the plot below of ellipses.
+```{r}
+obj<-mloop(cx=0,cy=0,n.points=100,period=99)
+obj2<-mloop(cx=1.5,cy=0,n.points=100,period=99)
+obj3<-mloop(cx=0,cy=1.5,n.points=100,period=99)
+plot(obj$x,obj$y,type="l",xlim=c(-2,3),ylim=c(-2,3),xlab="x",ylab="y",col="#6600CC",main="Centroid Given by cx and cy")
+points(0,0,pch=19,col="#6600CC")
+text(x=0,y=0.15,"(cx=0,cy=0)",col="#6600CC")
+lines(obj2$x,obj2$y,col="#00FF66")
+points(1.5,0,pch=19,col="#00FF66")
+text(x=1.5,y=0.15,"(cx=1.5,cy=0)",col="#00FF66")
+lines(obj3$x,obj3$y,col="#FF6600")
+points(0,1.5,pch=19,col="#FF6600")
+text(x=0,y=1.65,"(cx=0,cy=1.5)",col="#FF6600")
+```
+The saturation point where the input reaches its highest value is given by b.x and b.y.
+```{r bx,fig.show='asis',fig.width=5}
+for (i in c(0.6,1,2,4)){
+  obj<-mloop(b.x=i,n.points=100,period=99)
+  plot(obj$x,obj$y,xlim=c(-5,10),ylim=c(-1.4,1.4),type="l",main=paste("b.x=",i,sep=""),xlab="x",ylab="y")
+  points(i,0.8,pch=19)
+  legend(i,1,legend=c("Saturation Point","x=cx+b.x","y=cy+b.y"),bty="n")
+}
+```
+```{r by,fig.show='asis',fig.width=5}
+for (i in c(0.5,0.8,2,4)){
+  obj<-mloop(b.y=i,n.points=100,period=99)
+  plot(obj$x,obj$y,xlim=c(-1,2),ylim=c(-5,5),type="l",main=paste("b.y=",i,sep=""),xlab="x",ylab="y")
+  points(0.6,i,pch=19)
+  legend(0.8,i,legend=c("Saturation Point","x=cx+b.x","y=cy+b.y"),bty="n")
+}
+```
+Retention is the difference between the output when the input has returned to its central value and the central value of the output.
+```{r retention,fig.show='asis',fig.width=5}
+for (i in c(0.2,1,2,4)){
+  obj<-mloop(retention=i,n.points=100,period=99)
+  plot(obj$x,obj$y,xlim=c(-1,1),ylim=c(-5,5),type="l",main=paste("retention=",i,sep=""),xlab="x",ylab="y")
+  segments(0,0,0,i)
+  text(0.3,0.5,"Retention")
+}
+```
+Finally phase.angle changes the location of points along the loop, but does not change the form of the loop itself.When phase.angle is zero the loop starting point is also the saturation point.
+```{r final,fig.show="animate"}
+opts_chunk$set(dev="CairoPNG", out.extra='style="display:block; margin: auto"', fig.path="", fig.align="center")
+opts_knit$set(animation.fun = hook_r2swf)
+obj<-mloop(retention=0.5,n.points=100,period=99)
+for (i in c(0,pi/2,pi,3*pi/2)){
+  plot(obj$x,obj$y,type="l",xlab="x",ylab="y",main="Starting Points for Different Values of phase.angle",xlim=c(-0.6,0.8))
+  obj2<-mloop(phase.angle=i,retention=0.5,n.points=1,period=99)
+  points(obj2$x,obj2$y,pch=19,col="gold",cex=2)
+  points(obj2$x,obj2$y,col="gold",cex=4)
+  text(obj2$x+.08,obj2$y,round(i,2))
+}
+```
+
+Fitting Ellipses
+----------------------
+### The Process
+
+**Hysteresis** contains one method for fitting hysteresis loops given any m and n in the function **floop** and four methods for fitting hysteresis loops in the special case of an ellipse in the function **fel**. The harmonic2 method, which is the default, is based directly off of Lapshin's hysteresis loop parameterization. It generally produces estimates that are less biased and have lower variances than those produced by the other methods. Its downside is that it requires knowledge of times at which observations were observed.
+```{r}
+set.seed(24)
+ellipse1 <- mel(method=2,retention=0.4,b.x=0.6,b.y=0.8,cx=0,cy=0,sd.x=0.1,sd.y=0.1,phase.angle=0,period=24,n.points=24)
+#The function **mel** can be used as an alternative to **mloop** for simulating ellipses, and it is useful because it offers four different ellipse parameterizations.
+model <- fel(ellipse1$x,ellipse1$y,method="harmonic2",period=24,times="even")
+#period=24 and times="even" are used to say that 24 equally spaced points make up an ellipse.
+model
+```
+In addition to the coefficients of the model, **fel** also calculates a wide variety of derived parameters. Definitions for these parameters can be found using **help(ellipse.parameters)**.
+```{r}
+model$derived.values
+```
+A wide variety of functions have S3 methods for objects of class **ellipsefit** produced by **fel**. The most important of these is **summary.ellipsefit** which can be used to bootstrap and summarize models produced by **fel**.
+```{r}
+summary(model,N=10000,studentize=TRUE)
+```
+Another important S3 method is for the function **plot**.
+```{r}
+plot(model,main="Harmonic2 Ellipse Example")
+```
+In addition S3 methods exist for **fitted**, **print**, and **residuals**.
+
+### Comparison of Ellipse Estimation Methods
+
+The two most useful ellipse estimation methods implemented by **fel** are the 'harmonic2' and 'direct' methods. The 'direct' method is based off of the work of Jan Flusser and Radim Halir; it fits an ellipse without require time information and is more stable than the other two methods included in **fel**, 'lm' and 'nls', which are mainly there for use in simulations.
+```{r}
+modeldirect <- fel(ellipse1$x,ellipse1$y,method="direct",period=24,time="even")
+modeldirect
+summodel<-summary(modeldirect,N=10000,studentize=TRUE)
+plot(modeldirect,main="Direct Ellipse Example")
+```
+Notice that the 'direct' method uses different coefficient parameters than the 'harmonic2' method. However summary results for b.x, b.y, and retention are still available from the matrix of derived value results produced by summary.ellipsefit.
+```{r}
+summodel$derived.values
+```
+The four plots below illustrate the effectiveness of the four methods for fitting an ellipse. The data points are based on the ellipse in red.
+```{r tests,fig.width=10,fig.height=10}
+set.seed(11)
+par(mfrow=c(2,2))
+halfellipse <- mel(method=2,cx=20,cy=25,retention=0.2,b.x=7,b.y=0.2,sd.x=0.5,sd.y=0.05,period=24,n.points=16,phase.angle=pi/2)
+halftrueellipse <- mel(method=2,cx=20,cy=25,retention=0.2,b.x=7,b.y=0.2,phase.angle=0,period=99,n.points=100)
+harmodel<-fel(halfellipse$x,halfellipse$y,method="harmonic2",period=24,times="even")
+dirmodel<-fel(halfellipse$x,halfellipse$y,method="direct",period=24,times="even")
+lmmodel<-fel(halfellipse$x,halfellipse$y,method="lm",period=24,times="even")
+nlsmodel<-fel(halfellipse$x,halfellipse$y,method="nls",period=24,times="even",control=c(n.iter=500))
+plot(harmodel,main="Harmonic2 Model")
+lines(halftrueellipse$x,halftrueellipse$y,col="red")
+plot(dirmodel,main="Direct Model")
+lines(halftrueellipse$x,halftrueellipse$y,col="red")
+plot(lmmodel,main="Linear Model")
+lines(halftrueellipse$x,halftrueellipse$y,col="red")
+plot(nlsmodel,main="Non-Linear Model")
+lines(halftrueellipse$x,halftrueellipse$y,col="red")
+```
+
+Bootstrapping Fitted Ellipses
+----------------------------------
+
+The function **summary.ellipsefit** bootstraps the x and y residuals of a fitted ellipse separately to produce standard errors and less biased estimates of ellipse parameters. These residuals are easy to obtain using the 'harmonic2' model which gives fitted points when fitting the ellipse, but somewhat more difficult to obtain from the other methods which do not use time as a variable in fitting the model and therefore only give ellipses. The function **fel** therefore gives two methods for producing x and y residuals using these methods. If times="unknown" fitted values are taken to be the points on the ellipse closest to their realized values. If times="even" or a numeric vector and the period of the ellipse is known then the distances between points on the ellipse are taken as given and only the starting point of the ellipse is chosen to minimize the sum of squared distances between fitted and realized values. If times are available it is always better to give them, as the residuals given by times='unknown' will lead to standard errors for ellipse parameters that are biased downwards. If times really are unknown, a good alternative option for finding standard errors is to use the function **delta.error** which is currently available for every method except the direct.
+
+In addition residuals can be studentized within the **summary.ellipsefit** function by keeping studentize=TRUE, which is the default. The residuals in this case are $$R_{s}=A(A'A)^{-1}A'R_{0}$$ where $R_0$ is the original residual vector, A is the matrix $$\begin{Bmatrix}
+ 1 & sin(rad_{1}) & cos(rad_{1}) \\ 
+ ... & ... & ...\\ 
+ 1 & sin(rad_{n}) & cos(rad_{n})
+\end{Bmatrix}$$ and $R_{s}$ is the studentized residual vector. This formula works for both x and y residuals and has been shown in simulations to improve 95% bootstrap coverage intervals for all four methods.
+
+The value N gives the number of bootstrap replicates, its default is 1000 which may be  low in some situations. In each replication residuals are resampled with replacement and added to the original fitted values produced by **fel**. The simulated ellipse is then refit using the original method and parameter estimates are obtained. The standard deviations of these estimates are then used to give parameter standard errors, and less biased parameter estimates are obtained by subtracting the estimated bias produced by the method, mean(bootstrap estimates) - (original estimate), from the original estimate.
+
+### Comparison of Bootstrapped Ellipses
+
+The fitted ellipses from above are then bootstrapped to reduce bias.
+```{r boottest,fig.width=10,fig.height=10}
+par(mfrow=c(2,2))
+harsummodel<-summary(harmodel,N=1000,studentize=TRUE)
+dirsummodel<-summary(dirmodel,N=1000,studentize=TRUE)
+lmsummodel<-summary(lmmodel,N=1000,studentize=TRUE)
+nlssummodel<-summary(nlsmodel,N=1000,studentize=TRUE)
+plot(harsummodel,main="Bootstrapped Harmonic2 Model")
+lines(halftrueellipse$x,halftrueellipse$y,col="red")
+plot(dirsummodel,main="Bootstrapped Direct Model")
+lines(halftrueellipse$x,halftrueellipse$y,col="red")
+plot(lmsummodel,main="Bootstrapped Lm Model")
+lines(halftrueellipse$x,halftrueellipse$y,col="red")
+plot(nlssummodel,main="Bootstrapped Nls Model")
+lines(halftrueellipse$x,halftrueellipse$y,col="red")
+```
+
+Fitting Multiple Ellipses Simultaneously
+------------------------------------------
+
+The argument cycles in the function **fel** can be used to fit multiple ellipses which share the same period at one time. In this case **fel** produces an object of class ellipsefitlist instead of ellipsefit, and methods for objects of class ellipsefitlist exist for the functions **summary**, **plot**, and **print**. Ellipses are separated by levels given by the argument cycles, which can be either a vector or a list of vectors treated as factors. Below is an example of cycles in use.
+
+```{r}
+ellip1<-mel(method=2,retention=0.4,b.x=0.6,b.y=0.8,cx=0,cy=0,sd.x=0.1,sd.y=0.1,period=24,n.points=16,phase.angle=pi/2)
+ellip2<-mel(method=2,retention=0.8,b.x=0.6,b.y=0.8,cx=0,cy=0,sd.x=0.1,sd.y=0.1,period=24,n.points=20,phase.angle=pi/2)
+ellip3<-mel(method=2,retention=0.4,b.x=1,b.y=0.8,cx=0,cy=0,sd.x=0.1,sd.y=0.1,period=24,n.points=24,phase.angle=pi/2)
+X <- c(ellip1$x,ellip2$x,ellip3$x)
+Y <- c(ellip1$y,ellip2$y,ellip3$y)
+cycles <- c(rep("A",length(ellip1$x)),rep("B",length(ellip2$x)),rep("C",length(ellip3$x))) ##Each ellipse is given a different letter.
+models <- fel(X,Y,method="harmonic2",cycles=cycles)
+models
+summodels<-summary(models)
+summodels
+##To output summary results to excel, can use 
+###write.csv(summodels$coefficients,"file_name.csv") and 
+###write.csv(summodels$derived.values,"file_name.csv")
+plot(summodels,mfrow=c(3,1),main="Fitting Multiple Ellipses Simultaneously")
+```
+
+Fitting Hysteresis Loops
+--------------------------
+
+The function **floop** can be used to fit hysteresis loops that have values of m and n which are different from 1. Below is an example of a hysteresis loop with m=3, n=5 being fit. To fit a hysteresis loop, values of m=3, n=5 must be given as arguments to **floop**.
+```{r}
+loop <- mloop(m=3,n=5,sd.x=0.05,sd.y=0.05)
+fitloop <- floop(loop$x,loop$y,m=3,n=5,period=24,times="even")
+fitloop$values
+plot(loop$x,loop$y,main="Fitted Hysteresis Loop")
+lines(fitloop$pred.x,fitloop$pred.y)
+summary(fitloop)
+```
+
+Acknowledgments
+-----------------
+
+Multistate project 25-008/W-2173 Impacts of Stress Factors on Performance, Health, and Well Being of Farm Animals

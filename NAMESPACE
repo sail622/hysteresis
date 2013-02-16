@@ -1,0 +1,6 @@
+exportPattern("^[[:alpha:]]+")
+S3method(print,ellipsefit)
+S3method(plot,ellipsefit)
+S3method(summary,ellipsefit)
+S3method(plot,ellipsesummary)
+import(parallel,car,msm)

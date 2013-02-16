@@ -1,0 +1,4 @@
+\documentclass{article}
+\begin{document}
+This file is only here to trick R into thinking that I'm using sweave when I'm really using knitr. The Rmd file is what you really want to see.
+\end{document}
