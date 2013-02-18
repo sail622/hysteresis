@@ -25,7 +25,7 @@ Spencer Maynes, Fan Yang, and Anne Parkhurst.
 Maintainer: Spencer Maynes <smaynes89@gmail.com>
 }
 \references{
-Yang, F. and A. Parkhurst, Estimating Elliptical Hysteresis: A Comparison of Analytic Methods. (submitted)
+Yang, F. and A. Parkhurst,Efficient Estimation of Elliptical Hysteresis: A Comparison of Analytic Methods. (submitted)
 }
 \keyword{ package }
 \seealso{
