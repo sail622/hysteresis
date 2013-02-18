@@ -3,7 +3,7 @@
 \alias{hysteresis}
 \docType{package}
 \title{
-Modeling Rate Dependent Hysteretic Processes
+Modeling Rate-Dependent Hysteretic Processes
 }
 \description{
 Fit, summarize and plot sinusoidal hysteretic processes using two stage harmonic least squares. If the process is elliptical, other methods such as Halir and Flusser's direct specific least squares, ordinary least squares,
